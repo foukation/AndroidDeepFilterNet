@@ -306,7 +306,8 @@ dependencies {
 }
 
 licenseReport {
-    outputDir = "$rootDir"
+    // Keep generated license files under buildDir so Gradle does not fingerprint the whole checkout.
+    outputDir = layout.buildDirectory.dir("reports/licenses").get().asFile.absolutePath
     projects = arrayOf(project) + project.subprojects
     configurations = arrayOf("releaseRuntimeClasspath")
     renderers =
@@ -316,7 +317,11 @@ licenseReport {
 tasks.register<Exec>("moduleLicenseReport") {
     workingDir = rootDir
     description = "Executes the generateLicenseReport Gradle task"
-    commandLine("./gradlew", "generateLicenseReport")
+    if (System.getProperty("os.name").lowercase(Locale.ROOT).contains("windows")) {
+        commandLine("cmd", "/c", "gradlew.bat", "generateLicenseReport")
+    } else {
+        commandLine("./gradlew", "generateLicenseReport")
+    }
 }
 
 tasks.named("preBuild") {
